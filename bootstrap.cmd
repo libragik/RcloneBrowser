@@ -5,6 +5,10 @@ if "%QTDIR%" EQU "" (
 ) else (
   set QT=%QTDIR%
 )
+set Qt5Core_DIR=%QT%
+set Qt5Gui_DIR=%QT%
+set Qt5Widgets_DIR=%QT%
+set Qt5WinExtras_DIR=%QT%
 set PATH=%QT%\bin;%PATH%
 
 set _IsNativeEnvironment=true
