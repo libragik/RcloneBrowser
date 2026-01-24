@@ -2,6 +2,7 @@
 #include "icon_cache.h"
 #include "utils.h"
 #include <algorithm>
+#include <QRegularExpression>
 
 namespace {
 static void advanceSpinner(QString &text) {
@@ -487,14 +488,14 @@ void ItemModel::load(const QPersistentModelIndex &parentIndex, Item *parent) {
 
   QObject::connect(lsd, &QProcess::readyRead, this, [=]() {
     while (lsd->canReadLine()) {
-      if (mRegExpFolder.exactMatch(lsd->readLine().trimmed())) {
-        QStringList cap = mRegExpFolder.capturedTexts();
-
+      QString line = QString::fromUtf8(lsd->readLine().trimmed());
+      QRegularExpressionMatch match = mRegExpFolder.match(line);
+      if (match.hasMatch()) {
         Item *child = new Item();
         child->isFolder = true;
         child->parent = parent;
-        child->name = cap[2];
-        child->modified = cap[1];
+        child->name = match.captured(2);
+        child->modified = match.captured(1);
 
         cache->append(child);
       }
@@ -503,14 +504,14 @@ void ItemModel::load(const QPersistentModelIndex &parentIndex, Item *parent) {
 
   QObject::connect(lsl, &QProcess::readyRead, this, [=]() {
     while (lsl->canReadLine()) {
-      if (mRegExpFile.exactMatch(lsl->readLine().trimmed())) {
-        QStringList cap = mRegExpFile.capturedTexts();
-
+      QString line = QString::fromUtf8(lsl->readLine().trimmed());
+      QRegularExpressionMatch match = mRegExpFile.match(line);
+      if (match.hasMatch()) {
         Item *child = new Item();
         child->parent = parent;
-        child->name = cap[3];
-        child->modified = cap[2];
-        child->size = cap[1].toULongLong();
+        child->name = match.captured(3);
+        child->modified = match.captured(2);
+        child->size = match.captured(1).toULongLong();
 
         cache->append(child);
       }

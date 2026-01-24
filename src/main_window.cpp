@@ -432,7 +432,7 @@ void MainWindow::rcloneGetVersion() {
           };
 #endif
 
-          QStringList lines = version.split("\n", QString::SkipEmptyParts);
+          QStringList lines = version.split("\n", SKIP_EMPTY_PARTS);
           QString rclone_info2;
           QString rclone_info3;
 
@@ -1214,7 +1214,16 @@ void MainWindow::addStream(const QString &remote, const QString &stream) {
   ui.jobs->insertWidget(1, line);
   ui.tabs->setTabText(1, QString("Jobs (%1)").arg(++mJobCount));
 
-  player->start(stream, QProcess::ReadOnly);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  player->startCommand(stream);
+#else
+  // For Qt5, parse the command string into program and arguments
+  QStringList streamArgs = QProcess::splitCommand(stream);
+  if (!streamArgs.isEmpty()) {
+    QString program = streamArgs.takeFirst();
+    player->start(program, streamArgs, QProcess::ReadOnly);
+  }
+#endif
   UseRclonePassword(rclone);
   rclone->start(GetRclone(),
                 QStringList() << "cat" << GetRcloneConf() << remote,
