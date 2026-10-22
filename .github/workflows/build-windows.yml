@@ -1,0 +1,38 @@
+name: Build Windows Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.5.3'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_msvc2019_64'
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Project
+        run: |
+          cmake --build build --config Release
+
+      - name: Bundle Qt Runtime Dependencies (windeployqt)
+        run: |
+          windeployqt --release build/src/Release/RcloneBrowser.exe --dir build/src/Release
+
+      - name: Upload Zip Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: RcloneBrowser-Windows-x64
+          path: build/src/Release/
